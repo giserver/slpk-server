@@ -1,10 +1,11 @@
-﻿using System.IO.Compression;
+﻿using Slpk.Server.Exceptions;
+using System.IO.Compression;
 
 namespace Slpk.Server.Services
 {
     public interface ISlpkFileService
     {
-        public string? GetFullPath(string fileName);
+        public string GetFullPath(string fileName);
 
         Task<byte[]?> ReadAsync(string filePath, string innerPath);
     }
@@ -18,10 +19,13 @@ namespace Slpk.Server.Services
             this.configuration = configuration;
         }
 
-        public string? GetFullPath(string fileName)
+        public string GetFullPath(string fileName)
         {
             var fullPath = Path.Combine(configuration.GetSection("Slpk:Dir").Value, fileName);
-            return File.Exists(fullPath) ? fullPath : null;
+            if (!File.Exists(fullPath))
+                throw new BusnessException(404, $"Can't found SLPK: {fileName}");
+
+            return fullPath; 
         }
 
         public async Task<byte[]?> ReadAsync(string filePath, string innerPath)
