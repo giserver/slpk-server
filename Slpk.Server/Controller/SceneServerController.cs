@@ -6,20 +6,12 @@ using System.Text.Json;
 namespace Slpk.Server.Controller
 {
     [ApiController]
-    //[ServiceFilter(typeof(SceneServerActionFilter))]
     [Route("api/{slpk}/SceneServer")]
     public class SceneServerController : ControllerBase
     {
         private readonly string slpkName;
         private readonly string slpkFullPath;
         private readonly ISlpkFileService slpkFileService;
-
-        public record LayerNodeViewModel
-        {
-            public string Layer { get; set; }
-
-            public string Node { get; set; }
-        }
 
         public SceneServerController(IHttpContextAccessor httpContextAccessor, ISlpkFileService slpkFileService)
         {
@@ -62,10 +54,10 @@ namespace Slpk.Server.Controller
             return Ok(JsonSerializer.Deserialize<object>(buffer));
         }
 
-        [HttpGet("layers/{layer}/nodes/{node}/geometries/0")]
-        public async Task<IActionResult> GetNodeGeometriesAsync(string layer, string node)
+        [HttpGet("layers/{layer}/nodes/{node}/geometries/{geometryID}")]
+        public async Task<IActionResult> GetNodeGeometriesAsync(string layer, string node,string geometryID)
         {
-            var buffer = await slpkFileService.ReadAsync(slpkFullPath, $"nodes/{node}/geometries/0.bin.gz");
+            var buffer = await slpkFileService.ReadAsync(slpkFullPath, $"nodes/{node}/geometries/{geometryID}.bin.gz");
             return File(buffer!, "application/octet-stream; charset=binary");
         }
 

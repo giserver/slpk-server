@@ -5,7 +5,12 @@ VisualStudioVersion = 17.1.32104.313
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Slpk.Server", "Slpk.Server\Slpk.Server.csproj", "{5D69C652-2EDB-44BF-9E2B-2F16CA14A0D9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Slpk.Server.Test", "Slpk.Server.Test\Slpk.Server.Test.csproj", "{B41F7E9C-8DE5-4956-B8B5-AB584D783C08}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Slpk.Server.Test", "Slpk.Server.Test\Slpk.Server.Test.csproj", "{B41F7E9C-8DE5-4956-B8B5-AB584D783C08}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{453A2897-1E43-4469-B09D-EE58CD2E2287}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
