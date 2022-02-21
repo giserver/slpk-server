@@ -7,7 +7,7 @@ namespace Slpk.Server.Services
     {
         public string GetFullPath(string fileName);
 
-        Task<byte[]?> ReadAsync(string filePath, string innerPath);
+        Task<byte[]?> ReadAsync(string filePath, string innerPath, bool deGzip = false);
     }
 
     public class SlpkFileService : ISlpkFileService
@@ -28,7 +28,7 @@ namespace Slpk.Server.Services
             return fullPath; 
         }
 
-        public async Task<byte[]?> ReadAsync(string filePath, string innerPath)
+        public async Task<byte[]?> ReadAsync(string filePath, string innerPath, bool deGzip = false)
         {
             if (!File.Exists(filePath)) return null;
 
@@ -39,14 +39,14 @@ namespace Slpk.Server.Services
 
             using var stream = entry.Open();
 
-            if (innerPath.EndsWith(".gz"))
+            if (deGzip)
             {
                 using var destStream = new MemoryStream();
                 using var srcStream = new GZipStream(stream, CompressionMode.Decompress);
                 await srcStream.CopyToAsync(destStream);
                 return destStream.ToArray();
             }
-            
+
             var buffer = new byte[stream.Length];
             await stream.ReadAsync(buffer);
             return buffer;
