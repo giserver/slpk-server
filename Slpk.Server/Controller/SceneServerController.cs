@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Slpk.Server.Filters;
 using Slpk.Server.Services;
 using System.Text.Json;
@@ -12,13 +13,15 @@ namespace Slpk.Server.Controller
         private readonly string slpkName;
         private readonly string slpkFullPath;
         private readonly ISlpkFileService slpkFileService;
+        private readonly IMemoryCache memoryCache;
 
-        public SceneServerController(IHttpContextAccessor httpContextAccessor, ISlpkFileService slpkFileService)
+        public SceneServerController(IHttpContextAccessor httpContextAccessor, ISlpkFileService slpkFileService, IMemoryCache memoryCache)
         {
             slpkName = httpContextAccessor.HttpContext?.GetRouteValue("slpk")?.ToString()!;
             slpkFullPath = slpkFileService.GetFullPath(slpkName);
 
             this.slpkFileService = slpkFileService;
+            this.memoryCache = memoryCache;
         }
 
         [HttpGet]
@@ -38,18 +41,18 @@ namespace Slpk.Server.Controller
         }
 
         [HttpGet("layers/0")]
-        [ResponseHeader("Content-Encoding", "gzip")]
+        //[ResponseHeader("Content-Encoding", "gzip")]
         public async Task<IActionResult> GetLayerInfoAsync()
         {
-            var buffer = await slpkFileService.ReadAsync(slpkFullPath, "3dSceneLayer.json.gz");
+            var buffer = await slpkFileService.ReadAsync(slpkFullPath, "3dSceneLayer.json.gz", true);
             return File(buffer!, "application/json");
         }
 
         [HttpGet("layers/{layer}/nodes/{node}")]
-        [ResponseHeader("Content-Encoding", "gzip")]
+        //[ResponseHeader("Content-Encoding", "gzip")]
         public async Task<IActionResult> GetNodeInfoAsync(string layer, string node)
         {
-            var buffer = await slpkFileService.ReadAsync(slpkFullPath, $"nodes/{node}/3dNodeIndexDocument.json.gz");
+            var buffer = await slpkFileService.ReadAsync(slpkFullPath, $"nodes/{node}/3dNodeIndexDocument.json.gz", true);
             if (buffer == null)
                 return NoContent();
 
@@ -57,10 +60,16 @@ namespace Slpk.Server.Controller
         }
 
         [HttpGet("layers/{layer}/nodes/{node}/geometries/{geometryID}")]
-        [ResponseHeader("Content-Encoding", "gzip")]
+        //[ResponseHeader("Content-Encoding", "gzip")]
         public async Task<IActionResult> GetNodeGeometriesAsync(string layer, string node, string geometryID)
         {
-            var buffer = await slpkFileService.ReadAsync(slpkFullPath, $"nodes/{node}/geometries/{geometryID}.bin.gz");
+            var buffer = await memoryCache.GetOrCreateAsync($"{slpkName}-{node}-{geometryID}", async entry =>
+            {
+                var buffer = await slpkFileService.ReadAsync(slpkFullPath, $"nodes/{node}/geometries/{geometryID}.bin.gz", true);
+                entry.SetSlidingExpiration(TimeSpan.FromMinutes(3));
+                return buffer;
+            });
+
             return File(buffer!, "application/octet-stream; charset=binary");
         }
 
@@ -78,10 +87,10 @@ namespace Slpk.Server.Controller
             return File(buffer, "image/jpeg");
         }
         [HttpGet("layers/{layer}/nodes/{node}/textures/0_0_1")]
-        [ResponseHeader("Content-Encoding", "gzip")]
+        //[ResponseHeader("Content-Encoding", "gzip")]
         public async Task<IActionResult> GetCTexturesInfoAsync(string layer, string node)
         {
-            var buffer = await slpkFileService.ReadAsync(slpkFullPath, $"nodes/{node}/textures/0_0_1.bin.dds.gz");
+            var buffer = await slpkFileService.ReadAsync(slpkFullPath, $"nodes/{node}/textures/0_0_1.bin.dds.gz", true);
             if (buffer == null)
                 return NoContent();
 
@@ -89,10 +98,10 @@ namespace Slpk.Server.Controller
         }
 
         [HttpGet("layers/{layer}/nodes/{node}/features/0")]
-        [ResponseHeader("Content-Encoding", "gzip")]
+        //[ResponseHeader("Content-Encoding", "gzip")]
         public async Task<IActionResult> GetFeatureInfoAsync(string layer, string node)
         {
-            var buffer = await slpkFileService.ReadAsync(slpkFullPath, $"nodes/{node}/features/0.json.gz");
+            var buffer = await slpkFileService.ReadAsync(slpkFullPath, $"nodes/{node}/features/0.json.gz", true);
             if (buffer == null)
                 return NoContent();
 
@@ -100,10 +109,10 @@ namespace Slpk.Server.Controller
         }
 
         [HttpGet("layers/{layer}/nodes/{node}/shared")]
-        [ResponseHeader("Content-Encoding", "gzip")]
+        //[ResponseHeader("Content-Encoding", "gzip")]
         public async Task<IActionResult> GetSharedInfoAsync(string layer, string node)
         {
-            var buffer = await slpkFileService.ReadAsync(slpkFullPath, $"nodes/{node}/shared/sharedResource.json.gz");
+            var buffer = await slpkFileService.ReadAsync(slpkFullPath, $"nodes/{node}/shared/sharedResource.json.gz", true);
             if (buffer == null)
                 return NoContent();
 
@@ -111,10 +120,10 @@ namespace Slpk.Server.Controller
         }
 
         [HttpGet("layers/{layer}/nodes/{node}/attributes/{attribute}/0")]
-        [ResponseHeader("Content-Encoding", "gzip")]
+        //[ResponseHeader("Content-Encoding", "gzip")]
         public async Task<IActionResult> GetAttributeInfoAsync(string layer, string node, string attribute)
         {
-            var buffer = await slpkFileService.ReadAsync(slpkFullPath, $"nodes/{node}/attributes/{attribute}/0.bin.gz");
+            var buffer = await slpkFileService.ReadAsync(slpkFullPath, $"nodes/{node}/attributes/{attribute}/0.bin.gz", true);
             if (buffer == null)
                 return NoContent();
 

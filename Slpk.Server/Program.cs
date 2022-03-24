@@ -8,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<ISlpkFileService, SlpkFileService>();
 builder.Services.AddHttpContextAccessor();
 
+builder.Services.AddMemoryCache();
+
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<GlobalExceptionFilter>();
